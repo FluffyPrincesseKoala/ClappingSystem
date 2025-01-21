@@ -9,7 +9,7 @@
   },
   "include": [
     "src/**/*"
-  ],
+, "src/config"  ],
   "exclude": [
     "node_modules"
   ]

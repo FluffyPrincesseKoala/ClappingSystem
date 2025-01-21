@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./backend
+    container_name: todo-app
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: clapping_system
+      DB_USER: your_username
+      DB_PASS: your_password
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: your_username
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: clapping_system
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  tests:
+    build:
+      context: ./tests/backend-tests
+    container_name: backend-tests
+    depends_on:
+      - app
+    environment:
+      TEST_URL: http://app:4000
+    command: ["sh", "/tests/run-tests.sh"]
+
+volumes:
+  postgres-data:
