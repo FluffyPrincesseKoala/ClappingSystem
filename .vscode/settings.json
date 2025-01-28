@@ -12,5 +12,17 @@
         "javascriptreact",
         "typescript",
         "typescriptreact"
+    ],
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "postgres-db",
+            "database": "clapping_system",
+            "username": "your_username",
+            "password": "your_password"
+        }
     ]
 }
