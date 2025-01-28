@@ -7,6 +7,10 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
+# Add this to the Dockerfile in ./backend
+COPY wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
+
 # Install dependencies
 RUN npm install
 
@@ -17,4 +21,4 @@ COPY . .
 EXPOSE 4000
 
 # Start the application
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]

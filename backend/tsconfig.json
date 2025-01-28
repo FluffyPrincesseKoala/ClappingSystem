@@ -9,7 +9,7 @@
   },
   "include": [
     "src/**/*"
-, "src/config"  ],
+, "src/config", "backupRestore.js"  ],
   "exclude": [
     "node_modules"
   ]
