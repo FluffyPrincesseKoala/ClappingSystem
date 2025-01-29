@@ -1,44 +1,44 @@
 'use strict';
 
-const { DataTypes } = require('sequelize');
-
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface) {
+  async up (queryInterface, Sequelize) {
+    // console.log("KOALAKIPUE:", Sequelize)
     await queryInterface.createTable('users', {
       id: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
       name: {
-        type: DataTypes.STRING,
+        type: Sequelize.DataTypes.STRING,
         allowNull: false,
       },
       email: {
-        type: DataTypes.STRING,
+        type: Sequelize.DataTypes.STRING,
         unique: true,
         allowNull: false,
       },
       createdAt: {
-        type: DataTypes.DATE,
+        type: Sequelize.DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW,
+        defaultValue: Sequelize.DataTypes.NOW,
       },
       updatedAt: {
-        type: DataTypes.DATE,
+        type: Sequelize.DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW,
+        defaultValue: Sequelize.DataTypes.NOW,
       },
     });
 
     await queryInterface.createTable('todos', {
       id: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
       userId: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.DataTypes.INTEGER,
         references: {
           model: 'users',
           key: 'id',
@@ -46,25 +46,25 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       createdAt: {
-        type: DataTypes.DATE,
+        type: Sequelize.DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW,
+        defaultValue: Sequelize.DataTypes.NOW,
       },
       updatedAt: {
-        type: DataTypes.DATE,
+        type: Sequelize.DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW,
+        defaultValue: Sequelize.DataTypes.NOW,
       },
     });
 
     await queryInterface.createTable('claps', {
       id: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
       todoId: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.DataTypes.INTEGER,
         references: {
           model: 'todos',
           key: 'id',
@@ -72,19 +72,19 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       createdAt: {
-        type: DataTypes.DATE,
+        type: Sequelize.DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW,
+        defaultValue: Sequelize.DataTypes.NOW,
       },
       updatedAt: {
-        type: DataTypes.DATE,
+        type: Sequelize.DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW,
+        defaultValue: Sequelize.DataTypes.NOW,
       },
     });
   },
 
-  async down(queryInterface) {
+  async down (queryInterface, Sequelize) {
     try {
       console.log('Running down migration for claps table')
       await queryInterface.dropTable('claps', { cascade: true });
@@ -103,5 +103,5 @@ module.exports = {
     } catch (e) {
       console.error('Failed down migration for users table:', e)
     }
-  },
+  }
 };

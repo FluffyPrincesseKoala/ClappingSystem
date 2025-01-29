@@ -1,18 +1,36 @@
+import { GraphQLError } from "graphql";
 import { User, Todo, Clap } from "../models";
-console.log("KALALALALALA: INIT RESOLVER 1")
+
 export const resolvers = {
   Query: {
     users: async () => {
       console.log("GraphQL resolver `users` called");
       try {
         const users = await User.findAll();
-        console.log("Resolver Users:", users);
         if (!users || !users.length)
           return []
         return users
       } catch (error) {
         console.error("Error fetching users:", error);
         throw new Error("Failed to fetch users");
+      }
+    },
+    user: async (_: any, { id }: { id: number }) => {
+      console.log(`GraphQL resolver \`user(${id})\` called`);
+      try {
+        const user = await User.findByPk(id);
+        if (!user) {
+          const error = new GraphQLError(`User with ID ${id} not found`);
+          (error as any).extensions = { code: "NOT_FOUND", statusCode: 404 };
+          console.log('lol')
+          throw error;
+        }
+        return user;
+      } catch (error) {
+        console.error("Error fetching user by ID:", error);
+        const genericError = new GraphQLError("Failed to fetch user");
+        (genericError as any).extensions = { code: "INTERNAL_SERVER_ERROR", statusCode: 500 };
+        throw genericError;
       }
     },
     todos: async (user: User) => {
@@ -37,21 +55,35 @@ export const resolvers = {
   Mutation: {
     createUser: async (_: any, { name, email }: { name: string; email: string }) => {
       try {
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+          const error = new GraphQLError("Email already exists");
+          (error as any).extensions = { code: "BAD_USER_INPUT", statusCode: 400 };
+          throw error;
+        }
         return await User.create({ name, email });
       } catch (error) {
         console.error("Error creating user:", error);
-        // if (error.name === "SequelizeUniqueConstraintError") {
-        //   throw new Error("Email already exists");
-        // }
-        throw new Error("Failed to create user");
+        const genericError = new GraphQLError("Failed to create user");
+        (genericError as any).extensions = { code: "INTERNAL_SERVER_ERROR", statusCode: 500 };
+        throw genericError;
       }
     },
     createTodo: async (_: any, { title, creatorId }: { title: string; creatorId: number }) => {
       try {
         return await Todo.create({ title, creatorId });
       } catch (error) {
-        console.error("Error creating todo:", error);
-        throw new Error("Failed to create todo");
+        if (error instanceof Error) {
+          console.error("Error creating user:", error.message);
+
+          // Return a GraphQL error with a proper status code
+          throw new GraphQLError("Failed to create todo: " + error.message);
+        } else {
+          console.error("Unexpected error:", error);
+          return {
+            errors: [{ message: "An unexpected error occurred", statusCode: 500 }],
+          };
+        }
       }
     },
     clapTodo: async (

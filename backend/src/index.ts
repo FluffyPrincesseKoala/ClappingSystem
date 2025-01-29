@@ -4,9 +4,6 @@ import { schema } from "./graphql/schema";
 import { connectToDatabase } from "./config/database";
 import { resolvers } from "./graphql/resolver";
 
-console.log("App Schema:", schema);
-console.log("App Resolvers:", resolvers);
-
 const app = express();
 
 app.use((req, res, next) => {
@@ -26,29 +23,24 @@ connectToDatabase()
     process.exit(1); // Exit if the database connection fails
   });
 
-console.log('KALALALALA: GraphQL schema initialization started')
-
 // Middleware for GraphQL with Enhanced Logging
 app.use(
   "/graphql",
   graphqlHTTP((req, res) => {
-    console.log("KALALALALA: Handling GraphQL request");
     return {
       schema,
       rootValue: resolvers,
       graphiql: true,
       customFormatErrorFn: (err) => {
         console.error("GraphQL Error:", err);
-        // console.error("Message:", err.message);
-        // console.error("Location:", err.locations);
-        // console.error("Path:", err.path);
-        return err;
+        const error = {
+          ...err
+        }
+        return error;
       },
     }
   })
 );
-console.log("KALALALALA: GraphQL schema initialization finished");
-
 // Health check route
 app.get("/ready", (req, res) => {
   console.log("Health check: /ready endpoint hit.");

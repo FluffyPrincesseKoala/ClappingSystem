@@ -45,9 +45,6 @@ export const typeDefs = `
   }
 `;
 
-console.log("KALALALALA: Schema initialized");
-console.log("Resolvers in schema:", resolvers);
-
 export const schema = makeExecutableSchema({
   typeDefs, // Your type definitions
   resolvers

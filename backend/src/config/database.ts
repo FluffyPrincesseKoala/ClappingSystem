@@ -10,6 +10,7 @@ const {
   DB_HOST,
   DB_DIALECT,
   DB_PORT,
+  INDOCKER
 } = process.env;
 
 if (!DB_NAME || !DB_USER || !DB_HOST || !DB_DIALECT) {
@@ -35,10 +36,13 @@ export const sequelize = new Sequelize(
   }
 );
 
+const isDocker = process.env.INDOCKER === 'OUI'
+const migrationPath = isDocker ? "/app/migrations/*.ts" : "./migrations/*.ts"
+
 // Configure Umzug for migration management
 const migrationConfig = new Umzug({
   migrations: {
-    glob: "./migrations/*.js",
+    glob: migrationPath,
   },
   context: sequelize.getQueryInterface(),
   storage: new SequelizeStorage({ sequelize }),
