@@ -8,8 +8,10 @@
     "esModuleInterop": true
   },
   "include": [
-    "src/**/*"
-, "src/config", "backupRestore.js"  ],
+    "src/**/*",
+    "src/config",
+    "backupRestore.js"
+  ],
   "exclude": [
     "node_modules"
   ]
