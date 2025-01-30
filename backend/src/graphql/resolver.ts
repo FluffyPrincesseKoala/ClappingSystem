@@ -121,6 +121,16 @@ export const resolvers = {
           existingClap.count += count
           await existingClap.save()
           return existingClap
+        } else {
+          const existingTodo = await Todo.findByPk(todoId)
+          if (!existingTodo) {
+            throw new GraphQLError('Failed to find clap relation', {
+              extensions: {
+                statusCode: 400,
+                message: `cannot find todo with id: ${todoId}`
+              },
+            })
+          }
         }
 
         return await Clap.create({ todoId, userId, count })

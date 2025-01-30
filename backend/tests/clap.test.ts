@@ -101,7 +101,9 @@ describe('Clap API Tests', () => {
 
       expect(res).to.have.status(400)
       expect(res.body.errors).to.not.be.undefined
-      expect(res.body.errors[0].message).to.include('Failed to clap on todo')
+      const errors = res.body.errors
+      expect(errors[0].message).to.include('Failed to find clap relation')
+      expect(errors[0].extensions.message).to.include('cannot find todo with id: 9999')
     })
   })
 
