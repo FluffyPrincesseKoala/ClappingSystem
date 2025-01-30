@@ -1,165 +1,167 @@
-import { GraphQLError } from "graphql";
-import { User, Todo, Clap } from "../models";
+import { GraphQLError } from 'graphql'
+import { models } from '../models/index.js'
+import { extensions } from 'sequelize/lib/utils/validator-extras'
+
+const { User, Todo, Clap } = models
 
 export const resolvers = {
   Query: {
     users: async () => {
-      console.log("GraphQL resolver `users` called");
+      console.log('Fetching all users...')
       try {
-        const users = await User.findAll();
-        if (!users || !users.length)
-          return []
-        return users
+        const users = await User.findAll()
+        return users || []
       } catch (error) {
-        console.error("Error fetching users:", error);
-        throw new Error("Failed to fetch users");
-      }
-    },
-    user: async (_: any, { id }: { id: number }) => {
-      console.log(`GraphQL resolver \`user(${id})\` called`);
-      try {
-        const user = await User.findByPk(id);
-        if (!user) {
-          const error = new GraphQLError(`User with ID ${id} not found`);
-          (error as any).extensions = { code: "NOT_FOUND", statusCode: 404 };
-          console.log('lol')
-          throw error;
-        }
-        return user;
-      } catch (error) {
-        console.error("Error fetching user by ID:", error);
-        const genericError = new GraphQLError("Failed to fetch user");
-        (genericError as any).extensions = { code: "INTERNAL_SERVER_ERROR", statusCode: 500 };
-        throw genericError;
-      }
-    },
-    todos: async (user: User) => {
-    try {
-      const todos = await Todo.findAll({ where: { creatorId: user.id } });
-      return todos || []; // Return empty array if no todos
-    } catch (error) {
-      console.error("Error fetching todos for user:", error);
-      return []; // Return fallback value
-    }
-  },
-  claps: async (user: User) => {
-    try {
-      const claps = await Clap.findAll({ where: { userId: user.id } });
-      return claps || [];
-    } catch (error) {
-      console.error("Error fetching claps for user:", error);
-      return []; // Return fallback value
-    }
-  }
-  },
-  Mutation: {
-    createUser: async (_: any, { name, email }: { name: string; email: string }) => {
-      try {
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-          const error = new GraphQLError("Email already exists");
-          (error as any).extensions = { code: "BAD_USER_INPUT", statusCode: 400 };
-          throw error;
-        }
-        return await User.create({ name, email });
-      } catch (error) {
-        console.error("Error creating user:", error);
-        const genericError = new GraphQLError("Failed to create user");
-        (genericError as any).extensions = { code: "INTERNAL_SERVER_ERROR", statusCode: 500 };
-        throw genericError;
-      }
-    },
-    createTodo: async (_: any, { title, creatorId }: { title: string; creatorId: number }) => {
-      try {
-        return await Todo.create({ title, creatorId });
-      } catch (error) {
-        if (error instanceof Error) {
-          console.error("Error creating user:", error.message);
+        console.error('Error fetching users:', error)
 
-          // Return a GraphQL error with a proper status code
-          throw new GraphQLError("Failed to create todo: " + error.message);
-        } else {
-          console.error("Unexpected error:", error);
-          return {
-            errors: [{ message: "An unexpected error occurred", statusCode: 500 }],
-          };
+        if (error instanceof GraphQLError) {
+          throw error
         }
+
+        throw new GraphQLError('Failed to fetch users', {
+          extensions: { code: 'INTERNAL_SERVER_ERROR', statusCode: 500 },
+        })
       }
     },
-    clapTodo: async (
+
+    user: async (_: any, { id }: { id: number }) => {
+      console.log(`Fetching user with ID: ${id}`)
+      try {
+        const user = await User.findByPk(id)
+        if (!user) {
+          throw new GraphQLError(`User with ID ${id} not found`, {
+            extensions: { code: 'NOT_FOUND', statusCode: 404 },
+          })
+        }
+        return { ...user.get(), id: user.id } // Ensure ID is present
+      } catch (error) {
+        console.error('Error fetching user:', error)
+
+        if (error instanceof GraphQLError) {
+          throw error
+        }
+
+        throw new GraphQLError('Failed to fetch user', {
+          extensions: { code: 'INTERNAL_SERVER_ERROR', statusCode: 500 },
+        })
+      }
+    },
+  },
+
+  Mutation: {
+    createUser: async (
       _: any,
-      { todoId, userId, count }: { todoId: number; userId: number; count: number }
+      { name, email }: { name: string; email: string }
     ) => {
       try {
-        const existingClap = await Clap.findOne({ where: { todoId, userId } });
+        const existingUser = await User.findOne({ where: { email } })
+        if (existingUser) {
+          throw new GraphQLError('Email already exists', {
+            extensions: { code: 'BAD_USER_INPUT', statusCode: 400 },
+          })
+        }
+        return await User.create({ name, email })
+      } catch (error) {
+        console.error('Error creating user:', error)
 
-        if (existingClap) {
-          existingClap.count += count;
-          await existingClap.save();
-          return existingClap;
+        if (error instanceof GraphQLError) {
+          throw error
         }
 
-        return await Clap.create({ todoId, userId, count });
+        throw new GraphQLError('Failed to create user', {
+          extensions: { code: 'INTERNAL_SERVER_ERROR', statusCode: 500 },
+        })
+      }
+    },
+
+    createTodo: async (
+      _: any,
+      { title, creatorId }: { title: string; creatorId: number }
+    ) => {
+      try {
+        const creator = await User.findByPk(creatorId)
+        if (!creator) {
+          throw new GraphQLError('Todo creator not found',  {
+            extensions: { statusCode: 400, message: `user not found with id: ${creatorId}` },
+          })
+        }
+        return await Todo.create({ title, creatorId })
       } catch (error) {
-        console.error("Error in clapTodo:", error);
-        throw new Error("Failed to clap on todo");
+        console.error('Error creating todo:', error)
+
+        if (error instanceof GraphQLError) {
+          if ( error.name === 'SequelizeForeignKeyConstraintError' ) {
+            // Return 400
+            throw new GraphQLError('Failed to create todo', {
+              extensions: { statusCode: 400 },
+            })
+          }
+          throw error
+        }
+
+        throw new GraphQLError('Failed to create todo', {
+          extensions: { code: 'INTERNAL_SERVER_ERROR', statusCode: 500 },
+        })
+      }
+    },
+
+    clapTodo: async (
+      _: any,
+      {
+        todoId,
+        userId,
+        count,
+      }: { todoId: number; userId: number; count: number }
+    ) => {
+      try {
+        const existingClap = await Clap.findOne({ where: { todoId, userId } })
+
+        if (existingClap) {
+          console.log('yesay')
+          existingClap.count += count
+          await existingClap.save()
+          return existingClap
+        }
+
+        return await Clap.create({ todoId, userId, count })
+      } catch (error) {
+        console.error('Error in clapTodo:', error)
+
+        if (error instanceof GraphQLError) {
+          if ( error.name === 'SequelizeForeignKeyConstraintError' ) {
+            // Return 400
+            throw new GraphQLError('Failed to find clap relation', {
+              extensions: { statusCode: 400 },
+            })
+          }
+          throw error
+        }
+
+        throw new GraphQLError('Failed to clap on todo', {
+          extensions: { code: 'INTERNAL_SERVER_ERROR', statusCode: 500 },
+        })
       }
     },
   },
+
   User: {
-    todos: async (user: User) => {
-      try {
-        const todos = await Todo.findAll({ where: { creatorId: user.id } });
-        return todos || []; // Return empty array if no todos
-      } catch (error) {
-        console.error("Error fetching todos for user:", error);
-        return []; // Return fallback value
-      }
-    },
-    claps: async (user: User) => {
-      try {
-        const claps = await Clap.findAll({ where: { userId: user.id } });
-        return claps || [];
-      } catch (error) {
-        console.error("Error fetching claps for user:", error);
-        return []; // Return fallback value
-      }
-    }
+    todos: async (user: InstanceType<typeof User>) =>
+      await Todo.findAll({ where: { creatorId: user.id } }),
+    claps: async (user: InstanceType<typeof User>) =>
+      await Clap.findAll({ where: { userId: user.id } }),
   },
+
   Todo: {
-    creator: async (todo: Todo) => {
-      try {
-        return await User.findByPk(todo.creatorId);
-      } catch (error) {
-        console.error("Error fetching creator for todo:", error);
-        throw new Error("Failed to fetch creator");
-      }
-    },
-    claps: async (todo: Todo) => {
-      try {
-        return await Clap.findAll({ where: { todoId: todo.id } });
-      } catch (error) {
-        console.error("Error fetching claps for todo:", error);
-        throw new Error("Failed to fetch claps");
-      }
-    },
+    creator: async (todo: InstanceType<typeof Todo>) =>
+      await User.findByPk(todo.creatorId),
+    claps: async (todo: InstanceType<typeof Todo>) =>
+      await Clap.findAll({ where: { todoId: todo.id } }),
   },
+
   Clap: {
-    user: async (clap: Clap) => {
-      try {
-        return await User.findByPk(clap.userId);
-      } catch (error) {
-        console.error("Error fetching user for clap:", error);
-        throw new Error("Failed to fetch user");
-      }
-    },
-    todo: async (clap: Clap) => {
-      try {
-        return await Todo.findByPk(clap.todoId);
-      } catch (error) {
-        console.error("Error fetching todo for clap:", error);
-        throw new Error("Failed to fetch todo");
-      }
-    },
+    user: async (clap: InstanceType<typeof Clap>) =>
+      await User.findByPk(clap.userId),
+    todo: async (clap: InstanceType<typeof Clap>) =>
+      await Todo.findByPk(clap.todoId),
   },
-};
+}

@@ -14,7 +14,7 @@ RUN chmod +x /wait-for-it.sh
 ENV INDOCKER=OUI
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy application code
 COPY . .

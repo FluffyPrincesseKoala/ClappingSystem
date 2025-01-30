@@ -1,15 +1,21 @@
-import { Model, DataTypes, InferAttributes, InferCreationAttributes, CreationOptional  } from "sequelize"
-import { sequelize } from "../config/database"
+import {
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+} from 'sequelize'
+import { sequelize } from '../config/database.js'
 
 export class User extends Model<
   InferAttributes<User>, // Describes the attributes available on the model
   InferCreationAttributes<User> // Describes the attributes required when creating a new instance
 > {
-  public id!: CreationOptional<number>
-  public name!: string
-  public email!: string
-  public readonly createdAt!: CreationOptional<Date>;
-  public readonly updatedAt!: CreationOptional<Date>;
+  declare id: CreationOptional<number>
+  declare name: string
+  declare email: string
+  declare readonly createdAt: CreationOptional<Date>
+  declare readonly updatedAt: CreationOptional<Date>
 }
 
 User.init(
@@ -18,6 +24,7 @@ User.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      allowNull: false,
     },
     name: {
       type: DataTypes.STRING,
@@ -41,10 +48,10 @@ User.init(
   },
   {
     sequelize, // Pass the Sequelize instance
-    modelName: "User",
-    tableName: "users", // Explicitly specify table name
-    timestamps: true // Enables createdAt and updatedAt columns
+    modelName: 'User',
+    tableName: 'users', // Explicitly specify table name
+    timestamps: true, // Enables createdAt and updatedAt columns
   }
 )
 
-export default User
+export default { User }

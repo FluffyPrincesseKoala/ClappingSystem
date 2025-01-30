@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
+  async up(queryInterface, Sequelize) {
     // console.log("KOALAKIPUE:", Sequelize)
     await queryInterface.createTable('users', {
       id: {
@@ -29,7 +29,7 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.DataTypes.NOW,
       },
-    });
+    })
 
     await queryInterface.createTable('todos', {
       id: {
@@ -55,7 +55,7 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.DataTypes.NOW,
       },
-    });
+    })
 
     await queryInterface.createTable('claps', {
       id: {
@@ -81,27 +81,27 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.DataTypes.NOW,
       },
-    });
+    })
   },
 
-  async down (queryInterface, Sequelize) {
+  async down(queryInterface, Sequelize) {
     try {
       console.log('Running down migration for claps table')
-      await queryInterface.dropTable('claps', { cascade: true });
+      await queryInterface.dropTable('claps', { cascade: true })
     } catch (e) {
       console.error('Failed down migration for claps table:', e)
     }
     try {
       console.log('Running down migration for todos table')
-      await queryInterface.dropTable('todos', { cascade: true });
+      await queryInterface.dropTable('todos', { cascade: true })
     } catch (e) {
       console.error('Failed down migration for todos table:', e)
     }
     try {
       console.log('Running down migration for users table')
-      await queryInterface.dropTable('users', { cascade: true });
+      await queryInterface.dropTable('users', { cascade: true })
     } catch (e) {
       console.error('Failed down migration for users table:', e)
     }
-  }
-};
+  },
+}

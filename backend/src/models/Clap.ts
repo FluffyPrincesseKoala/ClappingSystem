@@ -5,24 +5,24 @@ import {
   InferCreationAttributes,
   ForeignKey,
   CreationOptional,
-} from "sequelize"
-import { sequelize } from "../config/database"
-import { User } from "./User"
-import { Todo } from "./Todo"
+} from 'sequelize'
+import { sequelize } from '../config/database.js'
+import { User } from './User.js'
+import { Todo } from './Todo.js'
 
 export class Clap extends Model<
   InferAttributes<Clap>, // All attributes available on the model
   InferCreationAttributes<Clap> // Attributes required for creating an instance
 > {
-  public id!: CreationOptional<number>
-  public count!: number // Number of claps
+  declare id: CreationOptional<number>
+  declare count: number // Number of claps
 
   // Foreign keys
-  public userId!: ForeignKey<User["id"]>
-  public todoId!: ForeignKey<Todo["id"]>
+  declare userId: ForeignKey<User['id']>
+  declare todoId: ForeignKey<Todo['id']>
 
-  public readonly createdAt!: CreationOptional<Date>;
-  public readonly updatedAt!: CreationOptional<Date>;
+  declare readonly createdAt: CreationOptional<Date>
+  declare readonly updatedAt: CreationOptional<Date>
 }
 
 // Initialize the Clap model
@@ -43,7 +43,7 @@ Clap.init(
       allowNull: false,
       references: {
         model: User,
-        key: "id",
+        key: 'id',
       },
     },
     todoId: {
@@ -51,7 +51,7 @@ Clap.init(
       allowNull: false,
       references: {
         model: Todo,
-        key: "id",
+        key: 'id',
       },
     },
     createdAt: {
@@ -67,16 +67,16 @@ Clap.init(
   },
   {
     sequelize, // Pass the Sequelize instance
-    modelName: "Clap",
-    tableName: "claps", // Explicit table name
+    modelName: 'Clap',
+    tableName: 'claps', // Explicit table name
     timestamps: true, // Enable createdAt and updatedAt
   }
 )
 
 // Define associations
-Clap.belongsTo(User, { foreignKey: "userId" })
-Clap.belongsTo(Todo, { foreignKey: "todoId" })
-User.hasMany(Clap, { foreignKey: "userId" })
-Todo.hasMany(Clap, { foreignKey: "todoId" })
+Clap.belongsTo(User, { foreignKey: 'userId' })
+Clap.belongsTo(Todo, { foreignKey: 'todoId' })
+User.hasMany(Clap, { foreignKey: 'userId' })
+Todo.hasMany(Clap, { foreignKey: 'todoId' })
 
-export default Clap
+export default { Clap }

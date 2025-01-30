@@ -12,18 +12,18 @@ services:
       DB_NAME: clapping_system
       DB_USER: your_username
       DB_PASSWORD: your_password
-      CHOKIDAR_USEPOLLING: "true"  # Ensures file change detection in Docker
-      CHOKIDAR_INTERVAL: "100"     # Polling interval for fast reloads
+      CHOKIDAR_USEPOLLING: "true" # Ensures file change detection in Docker
+      CHOKIDAR_INTERVAL: "100" # Polling interval for fast reloads
     ports:
-      - "4000:4000" # GraphQL API
+      - "4100:4000" # GraphQL API
       - "9229:9229" # Debugging
     depends_on:
       - postgres
     volumes:
       - ./backend:/app
-      - /app/node_modules  # Prevents node_modules conflicts
+      - /app/node_modules # Prevents node_modules conflicts
     command: ["sh", "-c", "/wait-for-it.sh postgres:5432 -- npm run dev"]
-    restart: unless-stopped  # Avoids infinite restarts on failure
+    restart: unless-stopped # Avoids infinite restarts on failure
 
   postgres:
     image: postgres:15

@@ -5,23 +5,23 @@ import {
   InferCreationAttributes,
   ForeignKey,
   CreationOptional,
-} from "sequelize"
-import { sequelize } from "../config/database"
-import { User } from "../models"
+} from 'sequelize'
+import { sequelize } from '../config/database.js'
+import { User } from './User.js' // Import the actual model
 
 export class Todo extends Model<
   InferAttributes<Todo>, // All attributes on the model
   InferCreationAttributes<Todo> // Attributes required for creation
 > {
-  public id!: CreationOptional<number> // Primary key
-  public title!: string // Title of the todo
+  declare id: CreationOptional<number> // Primary key
+  declare title: string // Title of the todo
 
   // Foreign key to User
-  public creatorId!: ForeignKey<User["id"]>
+  declare creatorId: ForeignKey<InstanceType<typeof User>['id']>
 
   // Timestamps
-  public readonly createdAt!: CreationOptional<Date>;
-  public readonly updatedAt!: CreationOptional<Date>;
+  declare readonly createdAt: CreationOptional<Date>
+  declare readonly updatedAt: CreationOptional<Date>
 }
 
 Todo.init(
@@ -40,7 +40,7 @@ Todo.init(
       allowNull: false,
       references: {
         model: User,
-        key: "id",
+        key: 'id',
       },
     },
     createdAt: {
@@ -56,14 +56,14 @@ Todo.init(
   },
   {
     sequelize,
-    modelName: "Todo",
-    tableName: "todos", // Explicit table name
+    modelName: 'Todo',
+    tableName: 'todos', // Explicit table name
     timestamps: true, // Enables automatic timestamps
   }
 )
 
 // Define associations
-Todo.belongsTo(User, { foreignKey: "creatorId" })
-User.hasMany(Todo, { foreignKey: "creatorId" })
+Todo.belongsTo(User, { foreignKey: 'creatorId' })
+User.hasMany(Todo, { foreignKey: 'creatorId' })
 
 export default Todo
